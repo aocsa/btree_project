@@ -54,13 +54,16 @@ private:
 
 public:
   btree(std::shared_ptr<pagemanager> pm) : pm{pm} {
+    if (pm->is_empty()) {
+      node root{header.root_id};
+      pm->save(root.page_id, root);
 
-    node root{header.root_id};
-    pm->save(root.page_id, root);
+      header.count++;
 
-    header.count++;
-
-    pm->save(0, header);
+      pm->save(0, header);
+    } else {
+      pm->recover(0, header);
+    }
   }
 
   node new_node() {
