@@ -10,7 +10,7 @@ namespace disk {
 
 class pagemanager : protected std::fstream {
 public:
-  pagemanager(std::string file_name, int page_size);
+  pagemanager(std::string file_name, bool trunc = false);
 
   ~pagemanager();
 

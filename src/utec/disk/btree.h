@@ -181,18 +181,40 @@ public:
 
   bool find(const T &value) { return false; }
 
-  void print() {
+
+  void print(std::ostream& out) {
     node root = read_node(header.root_id);
-    print(root, 0);
+    print(root, 0, out);
+  }
+
+  void print(node &ptr, int level, std::ostream& out) {
+    int i;
+    for (i = 0; i < ptr.count; i++) {
+      if (ptr.children[i]) {
+        node child = read_node(ptr.children[i]);
+        print(child, level + 1, out);
+      }
+      out << ptr.data[i];
+    }
+    if (ptr.children[i]) {
+      node child = read_node(ptr.children[i]);
+      print(child, level + 1, out);
+    }
+  }
+
+
+  void print_tree() {
+    node root = read_node(header.root_id);
+    print_tree(root, 0);
     std::cout << "________________________\n";
   }
 
-  void print(node &ptr, int level) {
+  void print_tree(node &ptr, int level) {
     int i;
     for (i = ptr.count - 1; i >= 0; i--) {
       if (ptr.children[i + 1]) {
         node child = read_node(ptr.children[i + 1]);
-        print(child, level + 1);
+        print_tree(child, level + 1);
       }
 
       for (int k = 0; k < level; k++) {
@@ -202,7 +224,7 @@ public:
     }
     if (ptr.children[i + 1]) {
       node child = read_node(ptr.children[i + 1]);
-      print(child, level + 1);
+      print_tree(child, level + 1);
     }
   }
 };
