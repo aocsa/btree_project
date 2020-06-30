@@ -27,9 +27,7 @@ public:
     seekg(n * sizeof(Register), std::ios::beg);
     read(reinterpret_cast<char *>(&reg), sizeof(reg));
     return gcount() > 0;
-  }
-
-  // Marca el registro como borrado:
+  } 
 
   template <class Register> void erase(const long &n) {
     char mark;
