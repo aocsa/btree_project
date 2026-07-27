@@ -73,4 +73,24 @@ TEST_F(DiskBasedBtree, Iterators) {
 //  }
 }
 
+TEST_F(DiskBasedBtree, FindExistingKeys) {
+  bool trunc_file = true;
+  std::shared_ptr<pagemanager> pm = std::make_shared<pagemanager>("btree_find.index", trunc_file);
+  btree<char, BTREE_ORDER> bt(pm);
+  std::string values = "abcdefgh";
+  for (auto c : values) {
+    bt.insert(c);
+  }
+  EXPECT_TRUE(bt.find('a'));
+  EXPECT_TRUE(bt.find('d'));
+  EXPECT_TRUE(bt.find('h'));
+}
+
+TEST_F(DiskBasedBtree, FindMissingKeys) {
+  std::shared_ptr<pagemanager> pm = std::make_shared<pagemanager>("btree_find.index");
+  btree<char, BTREE_ORDER> bt(pm);
+  EXPECT_FALSE(bt.find('z'));
+  EXPECT_FALSE(bt.find('0'));
+}
+
 
