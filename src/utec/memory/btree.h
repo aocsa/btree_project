@@ -133,7 +133,19 @@ public:
     ptr->count = 1;
   }
 
-  bool find(const T &value) { return false; }
+  bool find(const T &value) { return find(root, value); }
+
+  bool find(node *ptr, const T &value) {
+    if (!ptr) return false;
+    int pos = 0;
+    while (pos < ptr->count && ptr->data[pos] < value) {
+      pos++;
+    }
+    if (pos < ptr->count && ptr->data[pos] == value) {
+      return true;
+    }
+    return find(ptr->children[pos], value);
+  }
 
   void print() {
     print(root, 0);
