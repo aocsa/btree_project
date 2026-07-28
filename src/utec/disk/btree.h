@@ -179,7 +179,25 @@ public:
     write_node(right.page_id, right);
   }
 
-  bool find(const T &value) { return false; }
+  bool find(const T &value) {
+    node root = read_node(header.root_id);
+    return find(root, value);
+  }
+
+  bool find(node &ptr, const T &value) {
+    int pos = 0;
+    while (pos < ptr.count && ptr.data[pos] < value) {
+      pos++;
+    }
+    if (pos < ptr.count && ptr.data[pos] == value) {
+      return true;
+    }
+    if (ptr.children[pos] != 0) {
+      node child = read_node(ptr.children[pos]);
+      return find(child, value);
+    }
+    return false;
+  }
 
 
   void print(std::ostream& out) {
