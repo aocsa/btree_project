@@ -40,14 +40,16 @@ public:
                 std::ios::beg);
     file_.read(reinterpret_cast<char *>(&reg),
                static_cast<std::streamsize>(sizeof(reg)));
-    return file_.gcount() > 0;
+    return file_.gcount() == static_cast<std::streamsize>(sizeof(Register));
   }
 
   // Marks the register as deleted:
   template <class Register> void erase(const long &n) {
+    static_assert(std::is_trivially_copyable_v<Register>,
+                  "Register must be trivially copyable for binary I/O");
     file_.clear();
     constexpr char mark = 'N';
-    file_.seekg(n * static_cast<std::streamoff>(sizeof(Register)),
+    file_.seekp(n * static_cast<std::streamoff>(sizeof(Register)),
                 std::ios::beg);
     file_.write(&mark, 1);
   }
@@ -56,8 +58,9 @@ private:
   static constexpr auto open_mode =
       std::ios::in | std::ios::out | std::ios::binary;
 
-  std::fstream file_;
+  // file_name_ before file_ so the ctor can move the name, then open from it.
   std::string file_name_;
+  std::fstream file_;
   bool empty_{false};
 };
 

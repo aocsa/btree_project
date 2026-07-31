@@ -4,7 +4,7 @@ namespace utec {
 namespace disk {
 
 pagemanager::pagemanager(std::string file_name, bool trunc)
-    : file_{file_name, open_mode}, file_name_{std::move(file_name)} {
+    : file_name_{std::move(file_name)}, file_{file_name_, open_mode} {
   if (!file_.good() || trunc) {
     empty_ = true;
     file_.close();
