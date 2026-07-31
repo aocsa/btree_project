@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 project(utecdf C CXX)
 
 # - conda environment -----------------------------------------------------------------------------
@@ -11,7 +11,9 @@ elseif (DEFINED ENV{CONDA_PREFIX})
     set(PREFIX $ENV{CONDA_PREFIX})
     message(STATUS "Conda environment detected, CMAKE_SYSTEM_PREFIX_PATH set to: ${CMAKE_SYSTEM_PREFIX_PATH}")
 endif ()
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FeatureSummary)
 include(CheckIncludeFiles)
@@ -90,9 +92,7 @@ function (blazingdb_artifact)
     target_compile_options (${ARG_TARGET} PUBLIC -ggdb -O0)
     target_link_libraries (${ARG_TARGET}-gtest 
         ${ARG_TARGET}
-        GTest::GTest
-        $ENV{CONDA_PREFIX}/lib/libgmock_main.a
-        $ENV{CONDA_PREFIX}/lib/libgmock.a )
+        GTest::gmock_main)
         
     add_custom_target (${ARG_TARGET}-gtest-run COMMAND $<TARGET_FILE:${ARG_TARGET}-gtest>)
 

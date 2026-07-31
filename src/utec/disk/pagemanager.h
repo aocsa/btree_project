@@ -1,59 +1,68 @@
 #pragma once
 
-#include <cstdlib>
 #include <fstream>
-#include <iostream>
 #include <string>
+#include <type_traits>
 
 namespace utec {
 namespace disk {
 
-class pagemanager : protected std::fstream {
+class pagemanager {
 public:
-  pagemanager(std::string file_name, bool trunc = false);
+  explicit pagemanager(std::string file_name, bool trunc = false);
+
+  pagemanager(const pagemanager &) = delete;
+  pagemanager &operator=(const pagemanager &) = delete;
+  pagemanager(pagemanager &&) noexcept = default;
+  pagemanager &operator=(pagemanager &&) noexcept = default;
 
   ~pagemanager();
 
-  inline bool is_empty() { return empty; }
+  [[nodiscard]] bool is_empty() const noexcept { return empty_; }
 
-  template <class Register> void save(const long &n, Register &reg) {
-    clear();
-    seekp(n * sizeof(Register), std::ios::beg);
-    write(reinterpret_cast<const char *>(&reg), sizeof(reg));
+  template <class Register>
+  void save(const long &n, Register &reg) {
+    static_assert(std::is_trivially_copyable_v<Register>,
+                  "Register must be trivially copyable for binary I/O");
+    file_.clear();
+    file_.seekp(n * static_cast<std::streamoff>(sizeof(Register)),
+                std::ios::beg);
+    file_.write(reinterpret_cast<const char *>(&reg),
+                static_cast<std::streamsize>(sizeof(reg)));
   }
 
-  // template<class Register>
-  // long save(Register &reg)
-  // {
-  //     clear();
-  //     seekp(0, std::ios::end);
-  //     write(reinterpret_cast<const char *> (&reg), sizeof(reg));
-
-  //     return page_id_count - 1;
-  // }
-
-  template <class Register> bool recover(const long &n, Register &reg) {
-    clear();
-    seekg(n * sizeof(Register), std::ios::beg);
-    read(reinterpret_cast<char *>(&reg), sizeof(reg));
-    return gcount() > 0;
+  template <class Register>
+  bool recover(const long &n, Register &reg) {
+    static_assert(std::is_trivially_copyable_v<Register>,
+                  "Register must be trivially copyable for binary I/O");
+    file_.clear();
+    file_.seekg(n * static_cast<std::streamoff>(sizeof(Register)),
+                std::ios::beg);
+    file_.read(reinterpret_cast<char *>(&reg),
+               static_cast<std::streamsize>(sizeof(reg)));
+    return file_.gcount() == static_cast<std::streamsize>(sizeof(Register));
   }
 
-  // Marca el registro como borrado:
-
+  // Marks the register as deleted:
   template <class Register> void erase(const long &n) {
-    char mark;
-    clear();
-    mark = 'N';
-    seekg(n * sizeof(Register), std::ios::beg);
-    write(&mark, 1);
+    static_assert(std::is_trivially_copyable_v<Register>,
+                  "Register must be trivially copyable for binary I/O");
+    file_.clear();
+    constexpr char mark = 'N';
+    file_.seekp(n * static_cast<std::streamoff>(sizeof(Register)),
+                std::ios::beg);
+    file_.write(&mark, 1);
   }
 
 private:
-  std::string fileName;
-  int pageSize;
-  bool empty;
-  long page_id_count;
+  static constexpr auto open_mode =
+      std::ios::in | std::ios::out | std::ios::binary;
+
+  // file_name_ before file_ so the ctor can move the name, then open from it.
+  std::string file_name_;
+  std::fstream file_;
+  bool empty_{false};
 };
+
 } // namespace disk
 } // namespace utec
