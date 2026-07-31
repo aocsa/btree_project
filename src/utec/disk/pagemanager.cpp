@@ -1,27 +1,22 @@
-
 #include "pagemanager.h"
-
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <string>
 
 namespace utec {
 namespace disk {
 
 pagemanager::pagemanager(std::string file_name, bool trunc)
-    : std::fstream(file_name.data(),
-                   std::ios::in | std::ios::out | std::ios::binary) {
-  empty = false;
-  fileName = file_name;
-  if (!good() || trunc) {
-    empty = true;
-    open(file_name.data(),
-         std::ios::in | std::ios::out | std::ios::trunc | std::ios::binary);
+    : file_{file_name, open_mode}, file_name_{std::move(file_name)} {
+  if (!file_.good() || trunc) {
+    empty_ = true;
+    file_.close();
+    file_.open(file_name_, open_mode | std::ios::trunc);
   }
 }
 
-pagemanager::~pagemanager() { close(); }
+pagemanager::~pagemanager() {
+  if (file_.is_open()) {
+    file_.close();
+  }
+}
 
 } // namespace disk
 } // namespace utec
